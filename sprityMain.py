@@ -1,6 +1,7 @@
 '''
     SpriTy - V1.0
-    This is a small program to collect gasoline prices in a certain region. 
+    This is a small program to collect gasoline prices in a to ne specified region in Austria.
+    It uses the public API of Austria's E-Control service. 
 '''
 
 ''' IMPORTS '''
