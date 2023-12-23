@@ -1,5 +1,7 @@
 # --- Custom gitignore code ---
 prices.csv
+stationIds.json
+.DS_Store
 
 # --- Generated gitignore code ---
 # Byte-compiled / optimized / DLL files
