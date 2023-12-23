@@ -15,6 +15,8 @@ import schedule
 import string
 import sys
 import time
+import smtplib, ssl
+from email.message import EmailMessage
 
 ''' STATE '''
 
@@ -41,6 +43,12 @@ apiEndpointSearchByRegion: string = "/search/gas-stations/by-region"
 # Timestamp etc. for last api call
 apiCallTimestamp: float = None
 apiCallDateTime: string = None
+
+# Email settings
+mailMessage = """Subject: Gas-Update
+
+Here are the latest updates for gas prices in your region.
+"""
 
 ''' FUNCTIONS '''
 
@@ -103,6 +111,9 @@ def job():
 
     # Print status
     print(now.strftime("%d.%m.%Y %H:%M:%S") + " Fetching finished - file written.")
+
+    # TODO: Send testmail
+    sendMail()
 
 # Get all availabel regions.
 def getAllRegions() -> list:
@@ -174,6 +185,46 @@ def writeToCSV(stationPrices: list):
         writer.writeheader()
         for key in rows:
             writer.writerow(key)
+
+def loadMailConfig() -> {}:
+    '''Reads the current mail configuration from the mail config file.'''
+
+    with open('email_config.json', 'r') as emailConfigFile:
+        mailConfig = json.load(emailConfigFile)
+        return mailConfig
+
+    return {}
+
+def constructMailMessage(mailConfig: {}) -> EmailMessage:
+    '''Constructs the message for the update mail.'''
+
+    message = EmailMessage()
+    message['Subject'] = mailConfig['subject']
+    message['From'] = mailConfig['sender']
+    message.set_content(mailConfig['introText'])
+
+    return message
+
+
+def sendMail():
+    '''Sends current updated gas prices to specified e-mail adresses.'''
+
+    try:
+        mailConfig = loadMailConfig()
+        mailMessage = constructMailMessage(mailConfig)
+        if mailConfig['mode'] == 'STARTTLS':
+            context = ssl.create_default_context()
+            with smtplib.SMTP(mailConfig['host'], mailConfig['port']) as server:
+                server.ehlo()
+                server.starttls(context=context)
+                server.ehlo()
+                server.login(mailConfig['user'], mailConfig['pwd'])
+                server.sendmail(mailConfig['sender'], mailConfig['receivers'], mailMessage.as_bytes())
+        else:
+            print("Error - Mail-mode not supported.")
+
+    except BaseException as ex:
+        print("Error - Exception during mail sending: " + str(ex))
 
 # Call main function
 main()
