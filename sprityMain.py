@@ -7,6 +7,7 @@
 ''' IMPORTS '''
 
 import csv
+import os
 from datetime import datetime
 import json
 import requests
@@ -154,6 +155,11 @@ def filterStations(completeList: list, selectedStations: list, timestamp: float,
 def writeToCSV(stationPrices: list):
     columns = ["ts", "datetime", "id", "name", "address", "postalCode", "dieselPrice"]
     rows: list = []
+
+    if not os.path.isfile("prices.csv"):
+        with open("prices.csv", "w", newline='') as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=columns)
+            writer.writeheader()
 
     with open("prices.csv",newline="") as currentFile:
         csv_reader=csv.DictReader(currentFile)
