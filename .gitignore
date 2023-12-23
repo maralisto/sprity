@@ -1,4 +1,5 @@
 # --- Custom gitignore code ---
+
 prices.csv
 stationIds.json
 .DS_Store

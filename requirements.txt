@@ -1,1 +1,4 @@
 # Python requirements file for SPRITY
+
+requests
+schedule
