@@ -52,8 +52,9 @@ Here are the latest updates for gas prices in your region.
 
 ''' FUNCTIONS '''
 
-# Main function.
 def main():
+    '''Main entry point of application.'''
+
     # Print status
     print("*** Welcome to SpriTy! ***")
 
@@ -115,15 +116,17 @@ def job():
     # TODO: Send testmail
     sendMail()
 
-# Get all availabel regions.
 def getAllRegions() -> list:
+    '''Get all available regions.'''
+
     print("Performing call to: " + (apiURL + apiEndpointRegions))
     response = requests.get(apiURL + apiEndpointRegions)
     regionList = response.json()
     return regionList
 
-# Search for gas stations by longitude and latitude.
 def searchStationsByCoords(lat: float, lon: float, fuelType: string, includeClosedStations: bool) -> list:
+    '''Search for gas stations by longitude and latitude.'''
+
     reqUrl = apiURLSearchByAdress \
                 .replace("%PARAM_LAT%", str(lat)) \
                 .replace("%PARAM_LON%", str(lon)) \
@@ -133,8 +136,9 @@ def searchStationsByCoords(lat: float, lon: float, fuelType: string, includeClos
     response = requests.get(reqUrl)
     return response.json()
 
-# Filters a given complete list for the prices of selected stations.
 def filterStations(completeList: list, selectedStations: list, timestamp: float, datetime: string) -> list:
+    '''Filters a given complete list for the prices of selected stations.'''
+
     filteredStationPrices: list = []
 
     # Get all gas station ids of the selected stations.
@@ -162,8 +166,9 @@ def filterStations(completeList: list, selectedStations: list, timestamp: float,
             
     return filteredStationPrices
 
-# Writes a given list to the persistent csv file.
 def writeToCSV(stationPrices: list):
+    '''Writes a given list to the persistent csv file.'''
+
     columns = ["ts", "datetime", "id", "name", "address", "postalCode", "dieselPrice"]
     rows: list = []
 
