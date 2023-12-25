@@ -17,6 +17,7 @@ import sys
 import time
 import smtplib, ssl
 from email.message import EmailMessage
+from station import Station
 
 ''' STATE '''
 
@@ -43,12 +44,6 @@ apiEndpointSearchByRegion: string = "/search/gas-stations/by-region"
 # Timestamp etc. for last api call
 apiCallTimestamp: float = None
 apiCallDateTime: string = None
-
-# Email settings
-mailMessage = """Subject: Gas-Update
-
-Here are the latest updates for gas prices in your region.
-"""
 
 ''' FUNCTIONS '''
 
@@ -108,13 +103,13 @@ def job():
     # Fetch stations, filter and update prices file.
     allStations = searchStationsByCoords(46.59431, 13.85228, "DIE", False)
     filteredStations = filterStations(allStations, stationList, apiCallTimestamp, apiCallDateTime)
-    writeToCSV(filteredStations)
+    allRows = writeToCSV(filteredStations)
 
     # Print status
     print(now.strftime("%d.%m.%Y %H:%M:%S") + " Fetching finished - file written.")
 
-    # TODO: Send testmail
-    sendMail()
+    # Send update mail
+    sendMail(allRows)
 
 def getAllRegions() -> list:
     '''Get all available regions.'''
@@ -166,7 +161,7 @@ def filterStations(completeList: list, selectedStations: list, timestamp: float,
             
     return filteredStationPrices
 
-def writeToCSV(stationPrices: list):
+def writeToCSV(stationPrices: list) -> list:
     '''Writes a given list to the persistent csv file.'''
 
     columns = ["ts", "datetime", "id", "name", "address", "postalCode", "dieselPrice"]
@@ -191,6 +186,38 @@ def writeToCSV(stationPrices: list):
         for key in rows:
             writer.writerow(key)
 
+    return rows
+
+def genStationListsForMail(stationPrices: list) -> str:
+    '''Generates the mail body regarding the last 5 prices for each station.'''
+    
+    stationList = {}
+
+    for row in stationPrices:
+        if int(row['id']) not in stationList:
+           newStation = Station(row['id'], row['name'])
+           stationList[int(newStation.id)] = newStation
+        
+        station = stationList[int(row['id'])]
+        station.addRow(row)
+
+    message = ""
+
+    for stationId in stationList:
+        station = stationList[stationId]
+        last5rows = station.getLast5Rows()
+
+        message += "--------------------------------------------\n"
+        message += " " + station.name + "\n"
+        message += "\n"
+
+        for idx, row in enumerate(last5rows):
+            message += " " + last5rows[idx]['datetime'] + " - EUR " + str(last5rows[idx]['dieselPrice']) + "\n"
+
+    message += "--------------------------------------------\n\n"
+
+    return message
+
 def loadMailConfig() -> {}:
     '''Reads the current mail configuration from the mail config file.'''
 
@@ -200,23 +227,28 @@ def loadMailConfig() -> {}:
 
     return {}
 
-def constructMailMessage(mailConfig: {}) -> EmailMessage:
+def constructMailMessage(mailConfig: {}, rows: list) -> EmailMessage:
     '''Constructs the message for the update mail.'''
 
     message = EmailMessage()
     message['Subject'] = mailConfig['subject']
     message['From'] = mailConfig['sender']
-    message.set_content(mailConfig['introText'])
+
+    messageBody = "Greetings from your Sprity-Bot!\nHere are the last updates on your gas prices:\n\n"
+    messageBody += genStationListsForMail(rows)
+    messageBody += "That's all for now. Until next time!\nCU, Sprity-Bot"
+
+    message.set_content(messageBody)
 
     return message
 
 
-def sendMail():
+def sendMail(rows: list):
     '''Sends current updated gas prices to specified e-mail adresses.'''
 
     try:
         mailConfig = loadMailConfig()
-        mailMessage = constructMailMessage(mailConfig)
+        mailMessage = constructMailMessage(mailConfig, rows)
         if mailConfig['mode'] == 'STARTTLS':
             context = ssl.create_default_context()
             with smtplib.SMTP(mailConfig['host'], mailConfig['port']) as server:
