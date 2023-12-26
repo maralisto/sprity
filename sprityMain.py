@@ -15,6 +15,9 @@ import schedule
 import string
 import sys
 import time
+import smtplib, ssl
+from email.message import EmailMessage
+from station import Station
 
 ''' STATE '''
 
@@ -44,8 +47,9 @@ apiCallDateTime: string = None
 
 ''' FUNCTIONS '''
 
-# Main function.
 def main():
+    '''Main entry point of application.'''
+
     # Print status
     print("*** Welcome to SpriTy! ***")
 
@@ -99,20 +103,25 @@ def job():
     # Fetch stations, filter and update prices file.
     allStations = searchStationsByCoords(46.59431, 13.85228, "DIE", False)
     filteredStations = filterStations(allStations, stationList, apiCallTimestamp, apiCallDateTime)
-    writeToCSV(filteredStations)
+    allRows = writeToCSV(filteredStations)
 
     # Print status
     print(now.strftime("%d.%m.%Y %H:%M:%S") + " Fetching finished - file written.")
 
-# Get all availabel regions.
+    # Send update mail
+    sendMail(allRows)
+
 def getAllRegions() -> list:
+    '''Get all available regions.'''
+
     print("Performing call to: " + (apiURL + apiEndpointRegions))
     response = requests.get(apiURL + apiEndpointRegions)
     regionList = response.json()
     return regionList
 
-# Search for gas stations by longitude and latitude.
 def searchStationsByCoords(lat: float, lon: float, fuelType: string, includeClosedStations: bool) -> list:
+    '''Search for gas stations by longitude and latitude.'''
+
     reqUrl = apiURLSearchByAdress \
                 .replace("%PARAM_LAT%", str(lat)) \
                 .replace("%PARAM_LON%", str(lon)) \
@@ -122,8 +131,9 @@ def searchStationsByCoords(lat: float, lon: float, fuelType: string, includeClos
     response = requests.get(reqUrl)
     return response.json()
 
-# Filters a given complete list for the prices of selected stations.
 def filterStations(completeList: list, selectedStations: list, timestamp: float, datetime: string) -> list:
+    '''Filters a given complete list for the prices of selected stations.'''
+
     filteredStationPrices: list = []
 
     # Get all gas station ids of the selected stations.
@@ -151,8 +161,9 @@ def filterStations(completeList: list, selectedStations: list, timestamp: float,
             
     return filteredStationPrices
 
-# Writes a given list to the persistent csv file.
-def writeToCSV(stationPrices: list):
+def writeToCSV(stationPrices: list) -> list:
+    '''Writes a given list to the persistent csv file.'''
+
     columns = ["ts", "datetime", "id", "name", "address", "postalCode", "dieselPrice"]
     rows: list = []
 
@@ -174,6 +185,81 @@ def writeToCSV(stationPrices: list):
         writer.writeheader()
         for key in rows:
             writer.writerow(key)
+
+    return rows
+
+def genStationListsForMail(stationPrices: list) -> str:
+    '''Generates the mail body regarding the last 5 prices for each station.'''
+    
+    stationList = {}
+
+    for row in stationPrices:
+        if int(row['id']) not in stationList:
+           newStation = Station(row['id'], row['name'])
+           stationList[int(newStation.id)] = newStation
+        
+        station = stationList[int(row['id'])]
+        station.addRow(row)
+
+    message = ""
+
+    for stationId in stationList:
+        station = stationList[stationId]
+        last5rows = station.getLast5Rows()
+
+        message += "--------------------------------------------\n"
+        message += " " + station.name + "\n"
+        message += "\n"
+
+        for idx, row in enumerate(last5rows):
+            message += " " + last5rows[idx]['datetime'] + " - EUR " + str(last5rows[idx]['dieselPrice']) + "\n"
+
+    message += "--------------------------------------------\n\n"
+
+    return message
+
+def loadMailConfig() -> {}:
+    '''Reads the current mail configuration from the mail config file.'''
+
+    with open('email_config.json', 'r') as emailConfigFile:
+        mailConfig = json.load(emailConfigFile)
+        return mailConfig
+
+    return {}
+
+def constructMailMessage(mailConfig: {}, rows: list) -> EmailMessage:
+    '''Constructs the message for the update mail.'''
+
+    message = EmailMessage()
+    message['Subject'] = mailConfig['subject']
+    message['From'] = mailConfig['sender']
+
+    messageBody = mailConfig['introText']    
+    messageBody += genStationListsForMail(rows)
+    messageBody += mailConfig['outroText']
+    message.set_content(messageBody)
+
+    return message
+
+def sendMail(rows: list):
+    '''Sends current updated gas prices to specified e-mail adresses.'''
+
+    try:
+        mailConfig = loadMailConfig()
+        mailMessage = constructMailMessage(mailConfig, rows)
+        if mailConfig['mode'] == 'STARTTLS':
+            context = ssl.create_default_context()
+            with smtplib.SMTP(mailConfig['host'], mailConfig['port']) as server:
+                server.ehlo()
+                server.starttls(context=context)
+                server.ehlo()
+                server.login(mailConfig['user'], mailConfig['pwd'])
+                server.sendmail(mailConfig['sender'], mailConfig['receivers'], mailMessage.as_bytes())
+        else:
+            print("Error - Mail-mode not supported.")
+
+    except BaseException as ex:
+        print("Error - Exception during mail sending: " + str(ex))
 
 # Call main function
 main()

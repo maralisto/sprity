@@ -3,6 +3,7 @@
 prices.csv
 stationIds.json
 .DS_Store
+email_config.json
 
 # --- Generated gitignore code ---
 # Byte-compiled / optimized / DLL files

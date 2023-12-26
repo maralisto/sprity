@@ -1,0 +1,13 @@
+{
+	"mode": "STARTTLS",
+	"host": "",
+	"port": 587,
+	"user": "",
+	"pwd": "",
+	"sender": "Sprity-Bot <sprity@xyz.org>",
+	"receivers": [
+		"receiver@xyz.org"
+	],
+	"subject": "Gas-Update",
+	"introText": "Here are your new gas price updates."
+}
