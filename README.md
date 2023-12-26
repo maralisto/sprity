@@ -13,8 +13,8 @@ Furthermore, the script requires access to an e-mail server to send you updates 
 ## Usage
 
 The script can be run by normal Python interpreter start, e.g. 'python sprityMain.py'. Furthermore, there are two modes in which the script can be executed: 
- * Single-Call Mode (run as: ´python sprityMain.py´)
- * Scheduled Mode (run as: ´python sprityMain.py scheduled´)
+ * Single-Call Mode (run as: `python sprityMain.py`)
+ * Scheduled Mode (run as: `python sprityMain.py scheduled`)
  
 In "Single-Call Mode" the script performs one roundtrip to get the current prices immediatly and closes. Accordingly, in "Scheduled Mode" the script keeps running and pulls current prices twice a day. The times for this are currently 6 o'clock in the morning and 13 o'clock in the evening. Currently, it is not possible to set the pull-times via script arguments, but it will be implemented in a future update. 
 
