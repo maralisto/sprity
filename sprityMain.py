@@ -67,8 +67,8 @@ def main():
         print("Switching to scheduled mode.")
 
         # Configure schedule
-        schedule.every().day.at("09:00").do(job)
-        schedule.every().day.at("18:00").do(job)
+        schedule.every().day.at("06:00").do(job)
+        schedule.every().day.at("13:00").do(job)
 
         # For debugging schedule every minute
         #schedule.every(1).minute.do(job)
