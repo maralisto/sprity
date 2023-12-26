@@ -234,14 +234,12 @@ def constructMailMessage(mailConfig: {}, rows: list) -> EmailMessage:
     message['Subject'] = mailConfig['subject']
     message['From'] = mailConfig['sender']
 
-    messageBody = "Greetings from your Sprity-Bot!\nHere are the last updates on your gas prices:\n\n"
+    messageBody = mailConfig['introText']    
     messageBody += genStationListsForMail(rows)
-    messageBody += "That's all for now. Until next time!\nCU, Sprity-Bot"
-
+    messageBody += mailConfig['outroText']
     message.set_content(messageBody)
 
     return message
-
 
 def sendMail(rows: list):
     '''Sends current updated gas prices to specified e-mail adresses.'''
