@@ -9,5 +9,6 @@
 		"receiver@xyz.org"
 	],
 	"subject": "Gas-Update",
-	"introText": "Here are your new gas price updates."
+	"introText": "Greetings from your Sprity-Bot!\nHere are the last updates on your gas prices:\n\n",
+	"outroText": "That's all for now. Until next time!\nCU, Sprity-Bot"
 }
