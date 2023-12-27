@@ -45,6 +45,9 @@ apiEndpointSearchByRegion: string = "/search/gas-stations/by-region"
 apiCallTimestamp: float = None
 apiCallDateTime: string = None
 
+# Configuration of the app as described in config.json.
+config: dict = None
+
 ''' FUNCTIONS '''
 
 def main():
@@ -53,25 +56,15 @@ def main():
     # Print status
     print("*** Welcome to SpriTy! ***")
 
-    # Set mode
-    mode: string = "single"
+    config = loadConfiguration()
 
-    # Get argument
-    args: list = sys.argv
-    if len(args) > 1:
-        if args[1] == "scheduled":
-            mode = "scheduled"
-
-    if mode == "scheduled":
+    if config['run_scheduled']:
         # Print status
         print("Switching to scheduled mode.")
 
         # Configure schedule
-        schedule.every().day.at("06:00").do(job)
-        schedule.every().day.at("13:00").do(job)
-
-        # For debugging schedule every minute
-        #schedule.every(1).minute.do(job)
+        for timeSetting in config['run_times']:
+            schedule.every().day.at(timeSetting).do(job)
 
         # Start scheduler
         while True:
@@ -110,6 +103,12 @@ def job():
 
     # Send update mail
     sendMail(allRows)
+
+def loadConfiguration() -> dict:
+    '''Loads the contents of the configuration file (config.json).'''
+
+    configFile = open("config.json")
+    return json.load(configFile)
 
 def getAllRegions() -> list:
     '''Get all available regions.'''

@@ -1,0 +1,8 @@
+{
+    "run_scheduled": false,
+    "run_times": [
+        "06:00",
+        "13:00"
+    ],
+    "enable_email_notifications": false
+}
