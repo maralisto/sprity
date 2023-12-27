@@ -102,7 +102,8 @@ def job():
     print(now.strftime("%d.%m.%Y %H:%M:%S") + " Fetching finished - file written.")
 
     # Send update mail
-    sendMail(allRows)
+    if config['enable_email_notifications']:
+        sendMail(allRows)
 
 def loadConfiguration() -> dict:
     '''Loads the contents of the configuration file (config.json).'''

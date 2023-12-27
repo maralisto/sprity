@@ -4,5 +4,32 @@
         "06:00",
         "13:00"
     ],
-    "enable_email_notifications": false
+    "enable_email_notifications": false,
+    "email_configuration": {
+    	"mode": "STARTTLS",
+        "host": "",
+        "port": 587,
+        "user": "",
+        "pwd": "",
+        "sender": "Sprity-Bot <sprity@xyz.org>",
+        "receivers": [
+            "receiver@xyz.org"
+        ],
+        "subject": "Gas-Update",
+        "introText": "Greetings from your Sprity-Bot!\nHere are the last updates on your gas prices:\n\n",
+        "outroText": "That's all for now. Until next time!\nCU, Sprity-Bot"
+    },
+    "stationIds": [
+        {
+            "id": 4104,
+            "name": "Turm\u00f6l Quick",
+            "location": {
+                "address": "Triglavstra\u00dfe 1",
+                "postalCode": "9500",
+                "city": "Villach",
+                "latitude": 46.5939688,
+                "longitude": 13.8435871
+            }
+        }
+    ]
 }
