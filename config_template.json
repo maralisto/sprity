@@ -1,19 +1,19 @@
 {
-    "run_scheduled": true,
+    "run_scheduled": false,
     "run_times": [
         "06:00",
         "13:00"
     ],
-    "enable_email_notifications": true,
+    "enable_email_notifications": false,
     "email_configuration": {
     	"mode": "STARTTLS",
-        "host": "smtp.world4you.com",
+        "host": "",
         "port": 587,
-        "user": "sprity@hudelist.org",
-        "pwd": "=4JRaQf9q6",
-        "sender": "Sprity-Bot <sprity@hudelist.org>",
+        "user": "",
+        "pwd": "",
+        "sender": "Sprity-Bot <sprity@xyz.org>",
         "receivers": [
-            "marco@hudelist.org"
+            "receiver@xyz.org"
         ],
         "subject": "Gas-Update",
         "introText": "Greetings from your Sprity-Bot!\nHere are the last updates on your gas prices:\n\n",

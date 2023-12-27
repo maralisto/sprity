@@ -56,6 +56,8 @@ def main():
     # Print status
     print("*** Welcome to SpriTy! ***")
 
+    # Load configuration from config file and store it in global variable. 
+    global config
     config = loadConfiguration()
 
     if config['run_scheduled']:
@@ -90,8 +92,7 @@ def job():
     print(apiCallDateTime + " Fetching prices...")
 
     # Read station list
-    stationFile = open("stationIds.json")
-    stationList = json.load(stationFile)
+    stationList = config['stationIds']
 
     # Fetch stations, filter and update prices file.
     allStations = searchStationsByCoords(46.59431, 13.85228, "DIE", False)
@@ -218,15 +219,6 @@ def genStationListsForMail(stationPrices: list) -> str:
 
     return message
 
-def loadMailConfig() -> {}:
-    '''Reads the current mail configuration from the mail config file.'''
-
-    with open('email_config.json', 'r') as emailConfigFile:
-        mailConfig = json.load(emailConfigFile)
-        return mailConfig
-
-    return {}
-
 def constructMailMessage(mailConfig: {}, rows: list) -> EmailMessage:
     '''Constructs the message for the update mail.'''
 
@@ -245,7 +237,7 @@ def sendMail(rows: list):
     '''Sends current updated gas prices to specified e-mail adresses.'''
 
     try:
-        mailConfig = loadMailConfig()
+        mailConfig = config['email_configuration']
         mailMessage = constructMailMessage(mailConfig, rows)
         if mailConfig['mode'] == 'STARTTLS':
             context = ssl.create_default_context()
