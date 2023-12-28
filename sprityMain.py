@@ -18,6 +18,7 @@ import time
 import smtplib, ssl
 from email.message import EmailMessage
 from station import Station
+import argparse
 
 ''' STATE '''
 
@@ -53,8 +54,26 @@ config: dict = None
 def main():
     '''Main entry point of application.'''
 
+    # Parse arguments
+    args = setupArgparse()
+
     # Print status
     print("*** Welcome to SpriTy! ***")
+
+    if args.searchStations:
+        # Perform station search instead of price gathering.
+        searchLat = args.lat
+        searchLon = args.lon
+
+        foundStations = searchStationsByCoords(searchLat, searchLon, 'DIE', True)
+
+        print("The following stations were found in the vincinity of the given area:\n\n")
+        for station in foundStations:
+            printOutStationInfo(station)
+
+        print("*** End of station search results. ***")
+        return
+
 
     # Load configuration from config file and store it in global variable. 
     global config
@@ -79,6 +98,30 @@ def main():
         
         # Run job just one time.
         job()
+
+def printOutStationInfo(stationInfo: dict):
+    '''Prints out a filtered and formatted info of a station.'''
+
+    filteredDict = {}
+    filteredDict['id'] = stationInfo['id']
+    filteredDict['name'] = stationInfo['name']
+    filteredDict['location'] = stationInfo['location']
+
+    print('----------- Station Info ------------')
+    print(json.dumps(filteredDict, indent=2))
+    print('\n')
+
+def setupArgparse() -> dict:
+    '''Sets up argparse to process arguments of the command line.'''
+
+    parser = argparse.ArgumentParser(description='Sprity - Austrian gas-price helper.')
+    parser.add_argument('--searchStations', action='store_true', help='Search for gas stations.')
+    parser.add_argument('--lat', help='Latitude of search region.')
+    parser.add_argument('--lon', help='Longitude of search region.')
+    
+    args = parser.parse_args()
+
+    return args
 
 def job():
     ''' Job-function, that is executed by the scheduler and kicks of the fetching. '''

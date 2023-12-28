@@ -3,6 +3,7 @@
 prices.csv
 .DS_Store
 config.json
+.vscode
 
 # --- Generated gitignore code ---
 # Byte-compiled / optimized / DLL files
