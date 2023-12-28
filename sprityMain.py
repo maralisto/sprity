@@ -45,6 +45,9 @@ apiEndpointSearchByRegion: string = "/search/gas-stations/by-region"
 apiCallTimestamp: float = None
 apiCallDateTime: string = None
 
+# Configuration of the app as described in config.json.
+config: dict = None
+
 ''' FUNCTIONS '''
 
 def main():
@@ -53,25 +56,17 @@ def main():
     # Print status
     print("*** Welcome to SpriTy! ***")
 
-    # Set mode
-    mode: string = "single"
+    # Load configuration from config file and store it in global variable. 
+    global config
+    config = loadConfiguration()
 
-    # Get argument
-    args: list = sys.argv
-    if len(args) > 1:
-        if args[1] == "scheduled":
-            mode = "scheduled"
-
-    if mode == "scheduled":
+    if config['run_scheduled']:
         # Print status
         print("Switching to scheduled mode.")
 
         # Configure schedule
-        schedule.every().day.at("06:00").do(job)
-        schedule.every().day.at("13:00").do(job)
-
-        # For debugging schedule every minute
-        #schedule.every(1).minute.do(job)
+        for timeSetting in config['run_times']:
+            schedule.every().day.at(timeSetting).do(job)
 
         # Start scheduler
         while True:
@@ -97,8 +92,7 @@ def job():
     print(apiCallDateTime + " Fetching prices...")
 
     # Read station list
-    stationFile = open("stationIds.json")
-    stationList = json.load(stationFile)
+    stationList = config['stationIds']
 
     # Fetch stations, filter and update prices file.
     allStations = searchStationsByCoords(46.59431, 13.85228, "DIE", False)
@@ -109,7 +103,14 @@ def job():
     print(now.strftime("%d.%m.%Y %H:%M:%S") + " Fetching finished - file written.")
 
     # Send update mail
-    sendMail(allRows)
+    if config['enable_email_notifications']:
+        sendMail(allRows)
+
+def loadConfiguration() -> dict:
+    '''Loads the contents of the configuration file (config.json).'''
+
+    configFile = open("config.json")
+    return json.load(configFile)
 
 def getAllRegions() -> list:
     '''Get all available regions.'''
@@ -218,15 +219,6 @@ def genStationListsForMail(stationPrices: list) -> str:
 
     return message
 
-def loadMailConfig() -> {}:
-    '''Reads the current mail configuration from the mail config file.'''
-
-    with open('email_config.json', 'r') as emailConfigFile:
-        mailConfig = json.load(emailConfigFile)
-        return mailConfig
-
-    return {}
-
 def constructMailMessage(mailConfig: {}, rows: list) -> EmailMessage:
     '''Constructs the message for the update mail.'''
 
@@ -245,7 +237,7 @@ def sendMail(rows: list):
     '''Sends current updated gas prices to specified e-mail adresses.'''
 
     try:
-        mailConfig = loadMailConfig()
+        mailConfig = config['email_configuration']
         mailMessage = constructMailMessage(mailConfig, rows)
         if mailConfig['mode'] == 'STARTTLS':
             context = ssl.create_default_context()
