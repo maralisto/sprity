@@ -2,6 +2,10 @@
 
 A small script that tracks gasoline prices in configurable areas of Austria. 
 
+## Installation
+
+Make sure, that the dependencies defined in the `requirements.txt`-file are installed. Either install them globally or create a custom Python VENV - any of the options work. After that, make sure to do the configuration part below. 
+
 ## Configuration
 
 All configuration is loaded from an expected file called `config.json`, which should be located in the same folder as the script. For the initial start, a template file called `config_template.json`is included in the repo, with all the neccessary keys etc. You should make a copy of that file, rename it to 'config.json' and edit its contents to your needs. 
