@@ -64,26 +64,10 @@ def main():
     # Print status.
     print("*** Welcome to SpriTy! ***\n")
 
+    # Check if in station search mode and process it.
     if args.searchStations:
-
-        print("Switching to station search mode...\n")
-
-        # Perform station search instead of price gathering.
-        searchLat = args.lat
-        searchLon = args.lon
-
-        foundStations = searchStationsByCoords(searchLat, searchLon, 'DIE', True)
-
-        print("Use the following search region for these stations: ")
-        printOutSearchRegion(searchLat, searchLon) 
-
-        print("The following stations were found in the vincinity of the given area:\n\n")
-        for station in foundStations:
-            printOutStationInfo(station)
-                
-        print("*** End of station search results. ***")
+        processStationSearchMode(args)
         return
-
 
     # Load configuration from config file and store it in global variable. 
     if config['run_scheduled']:
@@ -105,6 +89,25 @@ def main():
         
         # Run job just one time.
         job()
+
+def processStationSearchMode(consoleArgs):
+    '''Processes the arguments for a station search and performs the search.'''
+    print("Switching to station search mode...\n")
+
+    # Perform station search instead of price gathering.
+    searchLat = consoleArgs.lat
+    searchLon = consoleArgs.lon
+
+    foundStations = searchStationsByCoords(searchLat, searchLon, 'DIE', True)
+
+    print("Use the following search region for these stations: ")
+    printOutSearchRegion(searchLat, searchLon) 
+
+    print("The following stations were found in the vincinity of the given area:\n\n")
+    for station in foundStations:
+        printOutStationInfo(station)
+            
+    print("*** End of station search results. ***")
 
 def printOutStationInfo(stationInfo: dict):
     '''Prints out a filtered and formatted info of a station.'''
@@ -164,13 +167,18 @@ def job():
     # Print status
     print(apiCallDateTime + " Fetching prices...")
 
-    # Read station list
+    # Read station list and regions.
     stationList = config['stationIds']
+    regionList = config['searchRegions']
+    reportList = []
 
-    # Fetch stations, filter and update prices file.
-    allStations = searchStationsByCoords(46.59431, 13.85228, "DIE", False)
-    filteredStations = filterStations(allStations, stationList, apiCallTimestamp, apiCallDateTime)
-    allRows = writeToCSV(filteredStations)
+    for region in regionList:
+
+        # Fetch stations, filter and update prices file.
+        allStations = searchStationsByCoords(region['lat'], region['lon'], "DIE", False)
+        reportList.append(filterStations(allStations, stationList, apiCallTimestamp, apiCallDateTime, region['id']))
+        
+    allRows = writeToCSV(reportList)
 
     # Print status
     print(now.strftime("%d.%m.%Y %H:%M:%S") + " Fetching finished - file written.")
@@ -205,7 +213,12 @@ def searchStationsByCoords(lat: float, lon: float, fuelType: string, includeClos
     response = requests.get(reqUrl)
     return response.json()
 
-def filterStations(completeList: list, selectedStations: list, timestamp: float, datetime: string) -> list:
+def filterStations(
+        completeList: list, 
+        selectedStations: list, 
+        timestamp: float, 
+        datetime: string,
+        regionId: int) -> list:
     '''Filters a given complete list for the prices of selected stations.'''
 
     filteredStationPrices: list = []
@@ -213,7 +226,8 @@ def filterStations(completeList: list, selectedStations: list, timestamp: float,
     # Get all gas station ids of the selected stations.
     stationIds = []
     for station in selectedStations:
-        stationIds.append(station["id"])
+        if station['searchRegion'] == regionId:
+            stationIds.append(station["id"])
 
     for station in completeList:
         if station["id"] in stationIds:
