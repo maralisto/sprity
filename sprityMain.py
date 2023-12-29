@@ -54,31 +54,38 @@ config: dict = None
 def main():
     '''Main entry point of application.'''
 
-    # Parse arguments
+    # Parse arguments.
     args = setupArgparse()
 
-    # Print status
-    print("*** Welcome to SpriTy! ***")
+    # Read config from config file. 
+    global config
+    config = loadConfiguration()
+
+    # Print status.
+    print("*** Welcome to SpriTy! ***\n")
 
     if args.searchStations:
+
+        print("Switching to station search mode...\n")
+
         # Perform station search instead of price gathering.
         searchLat = args.lat
         searchLon = args.lon
 
         foundStations = searchStationsByCoords(searchLat, searchLon, 'DIE', True)
 
+        print("Use the following search region for these stations: ")
+        printOutSearchRegion(searchLat, searchLon) 
+
         print("The following stations were found in the vincinity of the given area:\n\n")
         for station in foundStations:
             printOutStationInfo(station)
-
+                
         print("*** End of station search results. ***")
         return
 
 
     # Load configuration from config file and store it in global variable. 
-    global config
-    config = loadConfiguration()
-
     if config['run_scheduled']:
         # Print status
         print("Switching to scheduled mode.")
@@ -110,6 +117,29 @@ def printOutStationInfo(stationInfo: dict):
     print('----------- Station Info ------------')
     print(json.dumps(filteredDict, indent=2))
     print('\n')
+
+def printOutSearchRegion(lat: float, lon: float) -> int:
+    '''Prints out a suggestion for a search region, to be used in the config file. Furthermore, it returns the calculated highest region id for futher use.'''
+
+    # Determine current index of search regions and increment it for the suggestion. 
+
+    currentSearchRegions = config['searchRegions']
+    highestID = -1
+    for region in currentSearchRegions:
+        if int(region['id']) > highestID:
+            highestID = int(region['id'])
+
+    suggestion = {}
+    suggestion['id'] = highestID + 1
+    suggestion['name'] = "PUT_YOUR_NAME_HERE"
+    suggestion['lat'] = lat
+    suggestion['lon'] = lon
+
+    print(json.dumps(suggestion, indent=2))
+    print("\n")
+
+    return highestID
+
 
 def setupArgparse() -> dict:
     '''Sets up argparse to process arguments of the command line.'''
