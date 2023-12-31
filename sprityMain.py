@@ -176,7 +176,7 @@ def job():
 
         # Fetch stations, filter and update prices file.
         allStations = searchStationsByCoords(region['lat'], region['lon'], "DIE", False)
-        reportList.append(filterStations(allStations, stationList, apiCallTimestamp, apiCallDateTime, region['id']))
+        reportList.extend(filterStations(allStations, stationList, apiCallTimestamp, apiCallDateTime, region['id']))
         
     allRows = writeToCSV(reportList)
 
@@ -226,7 +226,7 @@ def filterStations(
     # Get all gas station ids of the selected stations.
     stationIds = []
     for station in selectedStations:
-        if station['searchRegion'] == regionId:
+        if station["searchRegion"] == regionId:
             stationIds.append(station["id"])
 
     for station in completeList:
