@@ -19,6 +19,14 @@
         "introText": "Greetings from your Sprity-Bot!\nHere are the last updates on your gas prices:\n\n",
         "outroText": "That's all for now. Until next time!\nCU, Sprity-Bot"
     },
+    "searchRegions": [
+      {
+        "id": 1,
+        "name": "home",
+        "lat": 46.59817,
+        "lon": 13.848953
+      }
+    ],
     "stationIds": [
         {
             "id": 4104,
@@ -29,7 +37,8 @@
                 "city": "Villach",
                 "latitude": 46.5939688,
                 "longitude": 13.8435871
-            }
+            },
+            "searchRegion": 1
         }
     ]
 }
