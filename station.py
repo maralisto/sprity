@@ -1,7 +1,9 @@
 class Station(object):
-    def __init__(self, id, name):
+    def __init__(self, id, name, address, postalCode):
         self.id = id
         self.name = name
+        self.address = address
+        self.postalCode = postalCode
         self.rows = []
 
     def addRow(self, row: list):

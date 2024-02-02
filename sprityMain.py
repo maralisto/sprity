@@ -283,7 +283,7 @@ def genStationListsForMail(stationPrices: list) -> str:
 
     for row in stationPrices:
         if int(row['id']) not in stationList:
-           newStation = Station(row['id'], row['name'])
+           newStation = Station(row['id'], row['name'], row['address'], row['postalCode'])
            stationList[int(newStation.id)] = newStation
         
         station = stationList[int(row['id'])]
@@ -297,6 +297,7 @@ def genStationListsForMail(stationPrices: list) -> str:
 
         message += "--------------------------------------------\n"
         message += " " + station.name + "\n"
+        message += " " + station.address + ", " + station.postalCode + "\n"
         message += "\n"
 
         for idx, row in enumerate(last5rows):
